@@ -5,27 +5,25 @@ import SearchBar from "../components/SearchBar.astro";
 
 <html>
   <body>
-
-    <div class="header">
-      <div class="logo">NETFLIX</div>
-
-      <div>
-        <button id="themeBtn">🌙</button>
-        <button onclick="showFavs()">❤️</button>
-      </div>
-    </div>
-
-    <div class="hero">
-      <h1>Movie Catalog</h1>
-    </div>
-
     <div class="container">
-      <SearchBar />
-    </div>
 
-    <div id="movies" class="grid"></div>
+      <div class="header">
+        <h1>&#127916; Movie Catalog</h1>
+
+        <div>
+          <button id="themeBtn">&#9790;</button>
+          <button onclick="showFavs()">&#10084;</button>
+        </div>
+      </div>
+
+      <SearchBar />
+
+      <div id="movies" class="grid"></div>
+
+    </div>
 
     <script>
+      // DARK MODE
       const btn = document.getElementById("themeBtn");
 
       btn.onclick = () => {
@@ -50,6 +48,7 @@ import SearchBar from "../components/SearchBar.astro";
 
           div.innerHTML = `
             <img src="${movie.Poster}" />
+            <h3>${movie.Title}</h3>
           `;
 
           div.onclick = () => {
@@ -60,6 +59,5 @@ import SearchBar from "../components/SearchBar.astro";
         });
       };
     </script>
-
   </body>
 </html>

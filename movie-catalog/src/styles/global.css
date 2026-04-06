@@ -1,16 +1,15 @@
 :root {
-  --bg: #0b0b0b;
-  --card: #181818;
-  --text: #ffffff;
-  --accent: #e50914;
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #e2e8f0;
+  --accent: #6366f1;
 }
 
 /* MODO CLARO */
 body.light {
-  --bg: #f5f5f5;
-  --card: #ffffff;
-  --text: #111;
-  --accent: #e50914;
+  --bg: #929292;
+  --card: #e6e6e6;
+  --text: #0f172a;
 }
 
 body {
@@ -21,41 +20,28 @@ body {
   transition: 0.3s;
 }
 
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
 /* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: black;
 }
 
-body.light .header {
-  background: #ddd;
-}
-
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--accent);
-}
-
-/* HERO */
-.hero {
-  height: 250px;
-  background: linear-gradient(to right, black, transparent),
-              url("https://images.unsplash.com/photo-1524985069026-dd778a71c7b4");
-  background-size: cover;
-  display: flex;
-  align-items: center;
-  padding: 20px;
+h1 {
+  margin: 0;
 }
 
 /* BUSCADOR */
 input {
-  padding: 12px;
   width: 100%;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 10px;
   border: none;
   margin: 20px 0;
 }
@@ -63,40 +49,45 @@ input {
 /* GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 15px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
 }
 
 /* CARD */
 .card {
   background: var(--card);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: 0.3s;
   position: relative;
+  transition: 0.3s;
 }
 
 .card:hover {
-  transform: scale(1.08);
+  transform: scale(1.05);
 }
 
 .card img {
   width: 100%;
-  height: 270px;
+  height: 300px;
   object-fit: cover;
+}
+
+.card h3 {
+  padding: 10px;
+  font-size: 14px;
 }
 
 /* FAVORITO */
 .fav {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.7);
-  border-radius: 50%;
+  top: 10px;
+  right: 10px;
+  background: black;
+  color: white;
   padding: 5px;
-  font-size: 16px;
+  border-radius: 8px;
+  font-size: 14px;
 }
 
 /* BOTONES */
@@ -104,7 +95,7 @@ button {
   background: var(--accent);
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border-radius: 8px;
   cursor: pointer;
 }

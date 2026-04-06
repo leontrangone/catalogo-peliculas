@@ -1,18 +1,15 @@
-<input type="text" id="searchInput" placeholder="Buscar película..." />
+<input type="text" id="searchInput" placeholder="Buscar pelicula..." />
 
 <script>
   const input = document.getElementById("searchInput");
   const container = document.getElementById("movies");
 
-  let currentPage = 1;
-  let currentQuery = "";
-
-  async function fetchMovies() {
-    if (currentQuery.length < 3) return;
+  async function fetchMovies(query) {
+    if (query.length < 3) return;
 
     container.innerHTML = "<p class='loader'>Cargando...</p>";
 
-    const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&s=${currentQuery}&page=${currentPage}`);
+    const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&s=${query}`);
     const data = await res.json();
 
     container.innerHTML = "";
@@ -28,9 +25,10 @@
 
       div.innerHTML = `
         <img src="${movie.Poster}" />
+        <h3>${movie.Title}</h3>
       `;
 
-      // IR A DETALLE
+      // CLICK → DETALLE
       div.onclick = () => {
         window.location.href = `/movie/${movie.imdbID}`;
       };
@@ -42,7 +40,7 @@
       let favs = JSON.parse(localStorage.getItem("favs")) || [];
       const isFav = favs.some(f => f.imdbID === movie.imdbID);
 
-      favBtn.innerText = isFav ? "💖" : "❤️";
+      favBtn.innerHTML = isFav ? "&#10084;&#65039;" : "&#9825;";
 
       favBtn.onclick = (e) => {
         e.stopPropagation();
@@ -53,10 +51,10 @@
 
         if (exists) {
           favs = favs.filter(f => f.imdbID !== movie.imdbID);
-          favBtn.innerText = "❤️";
+          favBtn.innerHTML = "&#9825;";
         } else {
           favs.push(movie);
-          favBtn.innerText = "💖";
+          favBtn.innerHTML = "&#10084;&#65039;";
         }
 
         localStorage.setItem("favs", JSON.stringify(favs));
@@ -68,8 +66,6 @@
   }
 
   input.addEventListener("input", () => {
-    currentQuery = input.value;
-    currentPage = 1;
-    fetchMovies();
+    fetchMovies(input.value);
   });
 </script>
