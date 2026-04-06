@@ -18,7 +18,7 @@
     container.innerHTML = "";
 
     if (data.Response === "False") {
-      container.innerHTML = "<p>No se encontraron resultados</p>";
+      container.innerHTML = "<p>No hay resultados</p>";
       return;
     }
 
@@ -31,21 +31,32 @@
         <h3>${movie.Title}</h3>
       `;
 
-      // CLICK → ir a detalle
-      div.addEventListener("click", () => {
+      // CLICK → detalle
+      div.onclick = () => {
         window.location.href = `/movie/${movie.imdbID}`;
-      });
+      };
 
-      // FAVORITO
+      // BOTÓN FAVORITO
       const favBtn = document.createElement("button");
       favBtn.innerText = "❤️";
+      favBtn.classList.add("fav");
 
       favBtn.onclick = (e) => {
         e.stopPropagation();
-        const favs = JSON.parse(localStorage.getItem("favs")) || [];
-        favs.push(movie);
-        localStorage.setItem("favs", JSON.stringify(favs));
-        alert("Guardado en favoritos");
+
+        let favs = JSON.parse(localStorage.getItem("favs")) || [];
+
+        const exists = favs.find(f => f.imdbID === movie.imdbID);
+
+        if (!exists) {
+          favs.push(movie);
+          localStorage.setItem("favs", JSON.stringify(favs));
+          favBtn.innerText = "💖";
+        } else {
+          favs = favs.filter(f => f.imdbID !== movie.imdbID);
+          localStorage.setItem("favs", JSON.stringify(favs));
+          favBtn.innerText = "❤️";
+        }
       };
 
       div.appendChild(favBtn);
@@ -60,7 +71,6 @@
     fetchMovies();
   });
 
-  // PAGINACIÓN
   window.nextPage = () => {
     currentPage++;
     fetchMovies();

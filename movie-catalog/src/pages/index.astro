@@ -4,21 +4,28 @@ import SearchBar from "../components/SearchBar.astro";
 ---
 
 <html>
-  <head>
-    <title>Movie Catalog</title>
-  </head>
   <body>
     <div class="container">
-      <h1>🎬 Movie Catalog</h1>
+      <h1>&#127916; Movie Catalog</h1>
+
+      <button id="themeBtn">🌙 Cambiar tema</button>
 
       <SearchBar />
 
       <div id="movies" class="grid"></div>
 
       <div style="text-align:center;">
-        <button onclick="prevPage()">⬅️ Anterior</button>
-        <button onclick="nextPage()">Siguiente ➡️</button>
+        <button onclick="prevPage()">⬅️</button>
+        <button onclick="nextPage()">➡️</button>
       </div>
     </div>
+
+    <script>
+      const btn = document.getElementById("themeBtn");
+
+      btn.onclick = () => {
+        document.body.classList.toggle("light");
+      };
+    </script>
   </body>
 </html>
