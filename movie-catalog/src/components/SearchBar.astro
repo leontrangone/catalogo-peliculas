@@ -4,12 +4,6 @@
   const input = document.getElementById("searchInput");
   const container = document.getElementById("movies");
 
-  function updateFavCount() {
-    const favs = JSON.parse(localStorage.getItem("favs")) || [];
-    const counter = document.getElementById("favCount");
-    if (counter) counter.innerText = favs.length + " favs";
-  }
-
   async function fetchMovies(query) {
     if (query.length < 3) return;
 
@@ -50,26 +44,29 @@
         e.stopPropagation();
 
         let favs = JSON.parse(localStorage.getItem("favs")) || [];
-
         const exists = favs.find(f => f.imdbID === movie.imdbID);
 
         if (exists) {
           favs = favs.filter(f => f.imdbID !== movie.imdbID);
           favBtn.innerHTML = "&#9825;";
+          favBtn.classList.remove("active");
         } else {
           favs.push(movie);
           favBtn.innerHTML = "&#10084;";
+          favBtn.classList.add("active");
+
+          // quitar animación después
+          setTimeout(() => {
+            favBtn.classList.remove("active");
+          }, 300);
         }
 
         localStorage.setItem("favs", JSON.stringify(favs));
-        updateFavCount();
       };
 
       div.appendChild(favBtn);
       container.appendChild(div);
     });
-
-    updateFavCount();
   }
 
   input.addEventListener("input", () => {
