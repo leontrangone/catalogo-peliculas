@@ -1,0 +1,17 @@
+---
+const { id } = Astro.params;
+
+const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&i=${id}`);
+const movie = await res.json();
+---
+
+<html>
+  <body>
+    <div class="container">
+      <h1>{movie.Title}</h1>
+      <img src={movie.Poster} />
+      <p>{movie.Plot}</p>
+      <p>⭐ {movie.imdbRating}</p>
+    </div>
+  </body>
+</html>

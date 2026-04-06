@@ -2,16 +2,74 @@
 
 <script>
   const input = document.getElementById("searchInput");
+  const container = document.getElementById("movies");
 
-  input.addEventListener("input", async () => {
-    const query = input.value;
+  let currentPage = 1;
+  let currentQuery = "";
 
-    if (query.length < 3) return;
+  async function fetchMovies() {
+    if (currentQuery.length < 3) return;
 
-    const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&s=${query}`);
+    container.innerHTML = "<p class='loader'>Cargando...</p>";
+
+    const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&s=${currentQuery}&page=${currentPage}`);
     const data = await res.json();
 
-    const event = new CustomEvent("moviesFetched", { detail: data.Search });
-    window.dispatchEvent(event);
+    container.innerHTML = "";
+
+    if (data.Response === "False") {
+      container.innerHTML = "<p>No se encontraron resultados</p>";
+      return;
+    }
+
+    data.Search.forEach(movie => {
+      const div = document.createElement("div");
+      div.classList.add("card");
+
+      div.innerHTML = `
+        <img src="${movie.Poster}" />
+        <h3>${movie.Title}</h3>
+      `;
+
+      // CLICK → ir a detalle
+      div.addEventListener("click", () => {
+        window.location.href = `/movie/${movie.imdbID}`;
+      });
+
+      // FAVORITO
+      const favBtn = document.createElement("button");
+      favBtn.innerText = "❤️";
+
+      favBtn.onclick = (e) => {
+        e.stopPropagation();
+        const favs = JSON.parse(localStorage.getItem("favs")) || [];
+        favs.push(movie);
+        localStorage.setItem("favs", JSON.stringify(favs));
+        alert("Guardado en favoritos");
+      };
+
+      div.appendChild(favBtn);
+
+      container.appendChild(div);
+    });
+  }
+
+  input.addEventListener("input", () => {
+    currentQuery = input.value;
+    currentPage = 1;
+    fetchMovies();
   });
+
+  // PAGINACIÓN
+  window.nextPage = () => {
+    currentPage++;
+    fetchMovies();
+  };
+
+  window.prevPage = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      fetchMovies();
+    }
+  };
 </script>
