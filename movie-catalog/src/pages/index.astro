@@ -11,6 +11,7 @@ import SearchBar from "../components/SearchBar.astro";
         <h1>&#127916; Movie Catalog</h1>
 
         <div>
+          <span id="favCount" class="counter"></span>
           <button id="themeBtn">&#9790;</button>
           <button onclick="showFavs()">&#10084;</button>
         </div>
@@ -23,17 +24,33 @@ import SearchBar from "../components/SearchBar.astro";
     </div>
 
     <script>
-      // DARK MODE
+      // 🔥 MODO GUARDADO
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") {
+        document.body.classList.add("light");
+      }
+
       const btn = document.getElementById("themeBtn");
 
       btn.onclick = () => {
         document.body.classList.toggle("light");
+
+        const isLight = document.body.classList.contains("light");
+        localStorage.setItem("theme", isLight ? "light" : "dark");
       };
 
-      // MOSTRAR FAVORITOS
+      // 🔥 CONTADOR FAVORITOS
+      function updateFavCount() {
+        const favs = JSON.parse(localStorage.getItem("favs")) || [];
+        document.getElementById("favCount").innerText = favs.length + " favs";
+      }
+
+      updateFavCount();
+
+      // 🔥 MOSTRAR FAVORITOS (CON BORRAR)
       window.showFavs = () => {
         const container = document.getElementById("movies");
-        const favs = JSON.parse(localStorage.getItem("favs")) || [];
+        let favs = JSON.parse(localStorage.getItem("favs")) || [];
 
         container.innerHTML = "";
 
@@ -51,10 +68,27 @@ import SearchBar from "../components/SearchBar.astro";
             <h3>${movie.Title}</h3>
           `;
 
+          // IR A DETALLE
           div.onclick = () => {
             window.location.href = `/movie/${movie.imdbID}`;
           };
 
+          // BOTÓN QUITAR
+          const removeBtn = document.createElement("div");
+          removeBtn.classList.add("fav");
+          removeBtn.innerHTML = "&#10006;";
+
+          removeBtn.onclick = (e) => {
+            e.stopPropagation();
+
+            favs = favs.filter(f => f.imdbID !== movie.imdbID);
+            localStorage.setItem("favs", JSON.stringify(favs));
+
+            showFavs();
+            updateFavCount();
+          };
+
+          div.appendChild(removeBtn);
           container.appendChild(div);
         });
       };

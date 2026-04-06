@@ -1,13 +1,19 @@
-<input type="text" id="searchInput" placeholder="Buscar pelicula..." />
+<input type="text" id="searchInput" placeholder="Buscar película..." />
 
 <script>
   const input = document.getElementById("searchInput");
   const container = document.getElementById("movies");
 
+  function updateFavCount() {
+    const favs = JSON.parse(localStorage.getItem("favs")) || [];
+    const counter = document.getElementById("favCount");
+    if (counter) counter.innerText = favs.length + " favs";
+  }
+
   async function fetchMovies(query) {
     if (query.length < 3) return;
 
-    container.innerHTML = "<p class='loader'>Cargando...</p>";
+    container.innerHTML = "<p>Cargando...</p>";
 
     const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&s=${query}`);
     const data = await res.json();
@@ -28,19 +34,17 @@
         <h3>${movie.Title}</h3>
       `;
 
-      // CLICK → DETALLE
       div.onclick = () => {
         window.location.href = `/movie/${movie.imdbID}`;
       };
 
-      // FAVORITO
       const favBtn = document.createElement("div");
       favBtn.classList.add("fav");
 
       let favs = JSON.parse(localStorage.getItem("favs")) || [];
       const isFav = favs.some(f => f.imdbID === movie.imdbID);
 
-      favBtn.innerHTML = isFav ? "&#10084;&#65039;" : "&#9825;";
+      favBtn.innerHTML = isFav ? "&#10084;" : "&#9825;";
 
       favBtn.onclick = (e) => {
         e.stopPropagation();
@@ -54,15 +58,18 @@
           favBtn.innerHTML = "&#9825;";
         } else {
           favs.push(movie);
-          favBtn.innerHTML = "&#10084;&#65039;";
+          favBtn.innerHTML = "&#10084;";
         }
 
         localStorage.setItem("favs", JSON.stringify(favs));
+        updateFavCount();
       };
 
       div.appendChild(favBtn);
       container.appendChild(div);
     });
+
+    updateFavCount();
   }
 
   input.addEventListener("input", () => {

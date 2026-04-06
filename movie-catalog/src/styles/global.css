@@ -7,8 +7,8 @@
 
 /* MODO CLARO */
 body.light {
-  --bg: #929292;
-  --card: #e6e6e6;
+  --bg: #f1f5f9;
+  --card: #ffffff;
   --text: #0f172a;
 }
 
@@ -37,6 +37,12 @@ h1 {
   margin: 0;
 }
 
+/* CONTADOR */
+.counter {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
 /* BUSCADOR */
 input {
   width: 100%;
@@ -61,6 +67,7 @@ input {
   cursor: pointer;
   position: relative;
   transition: 0.3s;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
 .card:hover {
@@ -98,9 +105,4 @@ button {
   padding: 8px 10px;
   border-radius: 8px;
   cursor: pointer;
-}
-
-/* LOADER */
-.loader {
-  text-align: center;
 }

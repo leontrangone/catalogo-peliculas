@@ -15,11 +15,17 @@ const movie = await res.json();
 
       <img src={movie.Poster} style="width:300px;" />
 
-      <p><strong>Year:</strong> {movie.Year}</p>
-      <p><strong>Genre:</strong> {movie.Genre}</p>
       <p>{movie.Plot}</p>
 
       <button onclick="window.history.back()">Volver</button>
     </div>
+
+    <script>
+      // mantener modo
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") {
+        document.body.classList.add("light");
+      }
+    </script>
   </body>
 </html>
