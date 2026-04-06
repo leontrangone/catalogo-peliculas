@@ -1,17 +1,45 @@
 ---
-const { id } = Astro.params;
+export const prerender = false;
 
-const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&i=${id}`);
-const movie = await res.json();
+import "../../styles/global.css";
+
+const id = Astro.params.id;
+
+let movie = null;
+
+try {
+  const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&i=${id}`);
+  movie = await res.json();
+} catch (error) {
+  movie = null;
+}
 ---
 
 <html>
   <body>
     <div class="container">
-      <h1>{movie.Title}</h1>
-      <img src={movie.Poster} />
-      <p>{movie.Plot}</p>
-      <p>⭐ {movie.imdbRating}</p>
+      {
+        movie && movie.Response !== "False" ? (
+          <>
+            <h1>{movie.Title}</h1>
+
+            <img src={movie.Poster} style="width:300px; border-radius:10px;" />
+
+            <p><strong>Año:</strong> {movie.Year}</p>
+            <p><strong>Género:</strong> {movie.Genre}</p>
+            <p><strong>Director:</strong> {movie.Director}</p>
+            <p><strong>Actores:</strong> {movie.Actors}</p>
+
+            <p>{movie.Plot}</p>
+
+            <p>⭐ IMDb: {movie.imdbRating}</p>
+          </>
+        ) : (
+          <p>No se encontró la película</p>
+        )
+      }
+
+      <button onclick="window.history.back()">⬅️ Volver</button>
     </div>
   </body>
 </html>
