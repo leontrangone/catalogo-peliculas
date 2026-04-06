@@ -1,0 +1,125 @@
+---
+import "../styles/global.css";
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Favoritos | Catálogo de películas</title>
+  </head>
+  <body>
+    <div class="container">
+      <nav class="top-nav">
+        <a href="/">Buscar películas</a>
+        <a href="/favoritos" class="active">Favoritos</a>
+      </nav>
+
+      <div class="header">
+        <div class="title-wrap">
+          <h1>Tus favoritos</h1>
+          <p>Volvé cuando quieras: tus películas quedan guardadas.</p>
+        </div>
+        <div class="actions">
+          <span id="favCount" class="counter"></span>
+          <button id="themeBtn" type="button" aria-label="Cambiar tema">🌙</button>
+          <button id="backToSearchBtn" type="button">Volver a búsqueda</button>
+        </div>
+      </div>
+
+      <div id="favoritesGrid" class="grid"></div>
+    </div>
+
+    <script>
+      const favoritesGrid = document.getElementById("favoritesGrid");
+      const favCount = document.getElementById("favCount");
+      const themeBtn = document.getElementById("themeBtn");
+      const backToSearchBtn = document.getElementById("backToSearchBtn");
+
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") {
+        document.body.classList.add("light");
+      }
+      themeBtn.textContent = document.body.classList.contains("light") ? "🌞" : "🌙";
+
+      function runAnimation(element, className = "run-animation") {
+        element.classList.remove(className);
+        void element.offsetWidth;
+        element.classList.add(className);
+      }
+
+      function getFavorites() {
+        return JSON.parse(localStorage.getItem("favs") || "[]");
+      }
+
+      function updateFavCount() {
+        favCount.textContent = `${getFavorites().length} favoritos`;
+        runAnimation(favCount, "grow-once");
+      }
+
+      function renderFavorites() {
+        const favs = getFavorites();
+        favoritesGrid.innerHTML = "";
+        runAnimation(favoritesGrid, "grow-once");
+
+        if (favs.length === 0) {
+          favoritesGrid.innerHTML =
+            "<p class='message'>No tenés favoritos todavía. Volvé a búsqueda y agregá algunos.</p>";
+          return;
+        }
+
+        favs.forEach((movie, index) => {
+          const div = document.createElement("div");
+          div.classList.add("card");
+          div.style.animationDelay = `${index * 45}ms`;
+          div.innerHTML = `
+            <img src="${movie.Poster}" alt="${movie.Title}" />
+            <h3>${movie.Title}</h3>
+          `;
+
+          div.onclick = () => {
+            window.location.href = `/movie/${movie.imdbID}`;
+          };
+
+          const removeBtn = document.createElement("div");
+          removeBtn.classList.add("fav");
+          removeBtn.innerHTML = "✖";
+          removeBtn.setAttribute("aria-label", `Quitar ${movie.Title} de favoritos`);
+          removeBtn.onclick = (event) => {
+            event.stopPropagation();
+            const updated = getFavorites().filter(item => item.imdbID !== movie.imdbID);
+            localStorage.setItem("favs", JSON.stringify(updated));
+            runAnimation(removeBtn, "active");
+            updateFavCount();
+            renderFavorites();
+          };
+
+          div.appendChild(removeBtn);
+          favoritesGrid.appendChild(div);
+        });
+      }
+
+      themeBtn.addEventListener("click", () => {
+        document.body.classList.toggle("light");
+        document.body.classList.remove("theme-switch");
+        void document.body.offsetWidth;
+        document.body.classList.add("theme-switch");
+
+        const isLight = document.body.classList.contains("light");
+        localStorage.setItem("theme", isLight ? "light" : "dark");
+        themeBtn.textContent = isLight ? "🌞" : "🌙";
+        runAnimation(themeBtn, "grow-once");
+      });
+
+      backToSearchBtn.addEventListener("click", () => {
+        runAnimation(backToSearchBtn, "grow-once");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 120);
+      });
+
+      updateFavCount();
+      renderFavorites();
+    </script>
+  </body>
+</html>

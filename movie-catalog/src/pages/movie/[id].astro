@@ -16,8 +16,24 @@ const movie = await res.json();
   </head>
   <body>
     <div class="container">
+      <nav class="top-nav">
+        <a href="/">Buscar películas</a>
+        <a href="/favoritos">Favoritos</a>
+      </nav>
+
+      <div class="header">
+        <div class="title-wrap">
+          <h1>Detalle de película</h1>
+          <p>Información completa de tu selección.</p>
+        </div>
+        <div class="actions">
+          <button id="themeBtn" type="button" aria-label="Cambiar tema">🌙</button>
+          <button id="backBtnTop" type="button">Volver</button>
+        </div>
+      </div>
+
       <article class="movie-detail">
-        <h1>{movie.Title}</h1>
+        <h2>{movie.Title}</h2>
         <div class="movie-layout">
           <img src={movie.Poster} alt={movie.Title} />
 
@@ -31,22 +47,45 @@ const movie = await res.json();
             <p><strong>Descripción:</strong> {movie.Plot}</p>
             <p><strong>Premios:</strong> {movie.Awards}</p>
             <p><strong>IMDb:</strong> {movie.imdbRating}</p>
-            <button id="backBtn" type="button">Volver</button>
+            <button id="backBtn" type="button">Volver a la página anterior</button>
           </div>
         </div>
       </article>
     </div>
 
     <script>
+      const themeBtn = document.getElementById("themeBtn");
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme === "light") {
         document.body.classList.add("light");
       }
+      themeBtn.textContent = document.body.classList.contains("light") ? "🌞" : "🌙";
+
+      function runAnimation(element, className = "run-animation") {
+        element.classList.remove(className);
+        void element.offsetWidth;
+        element.classList.add(className);
+      }
+
+      themeBtn.addEventListener("click", () => {
+        document.body.classList.toggle("light");
+        document.body.classList.remove("theme-switch");
+        void document.body.offsetWidth;
+        document.body.classList.add("theme-switch");
+
+        const isLight = document.body.classList.contains("light");
+        localStorage.setItem("theme", isLight ? "light" : "dark");
+        themeBtn.textContent = isLight ? "🌞" : "🌙";
+        runAnimation(themeBtn, "grow-once");
+      });
+
+      document.getElementById("backBtnTop")?.addEventListener("click", (event) => {
+        runAnimation(event.currentTarget, "grow-once");
+        setTimeout(() => window.history.back(), 120);
+      });
 
       document.getElementById("backBtn")?.addEventListener("click", (event) => {
-        event.currentTarget.classList.remove("run-animation");
-        void event.currentTarget.offsetWidth;
-        event.currentTarget.classList.add("run-animation");
+        runAnimation(event.currentTarget, "grow-once");
         setTimeout(() => window.history.back(), 120);
       });
     </script>

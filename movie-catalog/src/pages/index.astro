@@ -11,15 +11,19 @@ import SearchBar from "../components/SearchBar.astro";
   </head>
   <body>
     <div class="container">
+      <nav class="top-nav">
+        <a href="/" class="active">Buscar películas</a>
+        <a href="/favoritos">Favoritos</a>
+      </nav>
+
       <div class="header">
         <div class="title-wrap">
           <h1>Catálogo de películas</h1>
-          <p>Buscá títulos, guardá favoritos y explorá detalles.</p>
+          <p>Tu explorador cinéfilo con búsqueda instantánea y favoritos.</p>
         </div>
         <div class="actions">
           <span id="favCount" class="counter"></span>
           <button id="themeBtn" type="button" aria-label="Cambiar tema">🌙</button>
-          <button id="showFavsBtn" type="button" aria-label="Mostrar favoritos">❤</button>
         </div>
       </div>
 
@@ -29,10 +33,8 @@ import SearchBar from "../components/SearchBar.astro";
     </div>
 
     <script>
-      const moviesContainer = document.getElementById("movies");
       const favCount = document.getElementById("favCount");
       const themeBtn = document.getElementById("themeBtn");
-      const showFavsBtn = document.getElementById("showFavsBtn");
 
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme === "light") {
@@ -54,6 +56,10 @@ import SearchBar from "../components/SearchBar.astro";
 
       themeBtn.addEventListener("click", () => {
         document.body.classList.toggle("light");
+        document.body.classList.remove("theme-switch");
+        void document.body.offsetWidth;
+        document.body.classList.add("theme-switch");
+
         const isLight = document.body.classList.contains("light");
         localStorage.setItem("theme", isLight ? "light" : "dark");
         themeBtn.textContent = isLight ? "🌞" : "🌙";
@@ -62,52 +68,6 @@ import SearchBar from "../components/SearchBar.astro";
 
       updateFavCount();
       window.addEventListener("favorites:changed", updateFavCount);
-
-      window.showFavs = () => {
-        let favs = JSON.parse(localStorage.getItem("favs") || "[]");
-        moviesContainer.innerHTML = "";
-        runAnimation(moviesContainer);
-        runAnimation(showFavsBtn);
-
-        if (favs.length === 0) {
-          moviesContainer.innerHTML = "<p class='message'>No hay favoritos todavía.</p>";
-          return;
-        }
-
-        favs.forEach((movie, index) => {
-          const div = document.createElement("div");
-          div.classList.add("card");
-          div.style.animationDelay = `${index * 35}ms`;
-
-          div.innerHTML = `
-            <img src="${movie.Poster}" alt="${movie.Title}" />
-            <h3>${movie.Title}</h3>
-          `;
-
-          div.onclick = () => {
-            window.location.href = `/movie/${movie.imdbID}`;
-          };
-
-          const removeBtn = document.createElement("div");
-          removeBtn.classList.add("fav");
-          removeBtn.innerHTML = "✖";
-          removeBtn.setAttribute("aria-label", `Quitar ${movie.Title} de favoritos`);
-
-          removeBtn.onclick = (e) => {
-            e.stopPropagation();
-            favs = favs.filter(f => f.imdbID !== movie.imdbID);
-            localStorage.setItem("favs", JSON.stringify(favs));
-            showFavs();
-            updateFavCount();
-            window.dispatchEvent(new Event("favorites:changed"));
-          };
-
-          div.appendChild(removeBtn);
-          moviesContainer.appendChild(div);
-        });
-      };
-
-      showFavsBtn.addEventListener("click", () => window.showFavs());
     </script>
   </body>
 </html>

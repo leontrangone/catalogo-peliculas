@@ -1,19 +1,32 @@
-<input type="text" id="searchInput" placeholder="Buscar película..." />
+<section class="search-shell">
+  <div class="search-row">
+    <input type="text" id="searchInput" placeholder="Buscar película..." />
+    <button id="searchBtn" type="button">Buscar</button>
+  </div>
+</section>
 
 <script>
   const input = document.getElementById("searchInput");
+  const searchBtn = document.getElementById("searchBtn");
   const container = document.getElementById("movies");
+  const SEARCH_QUERY_KEY = "search:lastQuery";
+  const SEARCH_RESULTS_KEY = "search:lastResults";
   let currentRequest = 0;
   let searchDebounce;
 
-  function runAnimation(element) {
-    element.classList.remove("run-animation");
+  function runAnimation(element, className = "run-animation") {
+    element.classList.remove(className);
     void element.offsetWidth;
-    element.classList.add("run-animation");
+    element.classList.add(className);
+  }
+
+  function notifyFavoritesChanged() {
+    window.dispatchEvent(new Event("favorites:changed"));
   }
 
   function renderMessage(text) {
     container.innerHTML = `<p class="message">${text}</p>`;
+    runAnimation(container, "grow-once");
   }
 
   function renderSkeletons() {
@@ -23,17 +36,69 @@
       skel.classList.add("skeleton");
       container.appendChild(skel);
     }
+    runAnimation(container, "grow-once");
   }
 
-  function notifyFavoritesChanged() {
-    window.dispatchEvent(new Event("favorites:changed"));
+  function saveSearchState(query, movies) {
+    localStorage.setItem(SEARCH_QUERY_KEY, query);
+    localStorage.setItem(SEARCH_RESULTS_KEY, JSON.stringify(movies));
+  }
+
+  function getFavorites() {
+    return JSON.parse(localStorage.getItem("favs") || "[]");
+  }
+
+  function renderMovies(movies) {
+    container.innerHTML = "";
+
+    movies.forEach((movie, index) => {
+      const div = document.createElement("div");
+      div.classList.add("card");
+      div.style.animationDelay = `${index * 45}ms`;
+      div.innerHTML = `
+        <img src="${movie.Poster}" alt="${movie.Title}" />
+        <h3>${movie.Title}</h3>
+      `;
+
+      div.onclick = () => {
+        window.location.href = `/movie/${movie.imdbID}`;
+      };
+
+      const favBtn = document.createElement("div");
+      favBtn.classList.add("fav");
+      favBtn.setAttribute("aria-label", `Agregar o quitar ${movie.Title} de favoritos`);
+      favBtn.innerHTML = getFavorites().some(f => f.imdbID === movie.imdbID) ? "❤" : "♡";
+
+      favBtn.onclick = (e) => {
+        e.stopPropagation();
+        let list = getFavorites();
+        const exists = list.some(f => f.imdbID === movie.imdbID);
+
+        if (exists) {
+          list = list.filter(f => f.imdbID !== movie.imdbID);
+          favBtn.innerHTML = "♡";
+        } else {
+          list.push(movie);
+          favBtn.innerHTML = "❤";
+          runAnimation(favBtn, "active");
+        }
+
+        localStorage.setItem("favs", JSON.stringify(list));
+        notifyFavoritesChanged();
+      };
+
+      div.appendChild(favBtn);
+      container.appendChild(div);
+    });
   }
 
   async function fetchMovies(query) {
     const trimmedQuery = query.trim();
     const requestId = ++currentRequest;
+    localStorage.setItem(SEARCH_QUERY_KEY, trimmedQuery);
 
     if (trimmedQuery.length === 0) {
+      localStorage.removeItem(SEARCH_RESULTS_KEY);
       renderMessage("Escribí al menos 3 letras para buscar.");
       return;
     }
@@ -44,7 +109,7 @@
     }
 
     renderSkeletons();
-    runAnimation(container);
+    runAnimation(searchBtn, "grow-once");
 
     try {
       const res = await fetch(
@@ -53,69 +118,54 @@
       const data = await res.json();
 
       if (requestId !== currentRequest) return;
-      container.innerHTML = "";
 
       if (data.Response === "False") {
+        localStorage.removeItem(SEARCH_RESULTS_KEY);
         renderMessage("No se encontraron resultados.");
         return;
       }
 
-      data.Search.forEach((movie, index) => {
-        const div = document.createElement("div");
-        div.classList.add("card");
-        div.style.animationDelay = `${index * 35}ms`;
-
-        div.innerHTML = `
-          <img src="${movie.Poster}" alt="${movie.Title}" />
-          <h3>${movie.Title}</h3>
-        `;
-
-        div.onclick = () => {
-          window.location.href = `/movie/${movie.imdbID}`;
-        };
-
-        const favBtn = document.createElement("div");
-        favBtn.classList.add("fav");
-
-        const favs = JSON.parse(localStorage.getItem("favs") || "[]");
-        const isFav = favs.some(f => f.imdbID === movie.imdbID);
-        favBtn.innerHTML = isFav ? "❤" : "♡";
-        favBtn.setAttribute("aria-label", `Agregar o quitar ${movie.Title} de favoritos`);
-
-        favBtn.onclick = (e) => {
-          e.stopPropagation();
-          let list = JSON.parse(localStorage.getItem("favs") || "[]");
-          const exists = list.find(f => f.imdbID === movie.imdbID);
-
-          if (exists) {
-            list = list.filter(f => f.imdbID !== movie.imdbID);
-            favBtn.innerHTML = "♡";
-          } else {
-            list.push(movie);
-            favBtn.innerHTML = "❤";
-            favBtn.classList.add("active");
-            setTimeout(() => favBtn.classList.remove("active"), 300);
-          }
-
-          localStorage.setItem("favs", JSON.stringify(list));
-          notifyFavoritesChanged();
-        };
-
-        div.appendChild(favBtn);
-        container.appendChild(div);
-      });
-
-      runAnimation(input);
+      saveSearchState(trimmedQuery, data.Search);
+      renderMovies(data.Search);
+      runAnimation(input, "grow-once");
     } catch {
       if (requestId !== currentRequest) return;
       renderMessage("Error al buscar. Intentá nuevamente.");
     }
   }
 
+  function restoreLastSearch() {
+    const savedQuery = localStorage.getItem(SEARCH_QUERY_KEY) || "";
+    const rawResults = localStorage.getItem(SEARCH_RESULTS_KEY);
+
+    input.value = savedQuery;
+    if (!rawResults) {
+      renderMessage("Escribí al menos 3 letras para buscar.");
+      return;
+    }
+
+    try {
+      const savedMovies = JSON.parse(rawResults);
+      if (Array.isArray(savedMovies) && savedMovies.length > 0) {
+        renderMovies(savedMovies);
+        return;
+      }
+    } catch {
+      localStorage.removeItem(SEARCH_RESULTS_KEY);
+    }
+
+    renderMessage("Escribí al menos 3 letras para buscar.");
+  }
+
   input.addEventListener("input", () => {
     clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(() => fetchMovies(input.value), 260);
+    searchDebounce = setTimeout(() => fetchMovies(input.value), 280);
   });
 
-  renderMessage("Escribí al menos 3 letras para buscar.");
+  searchBtn.addEventListener("click", () => fetchMovies(input.value));
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") fetchMovies(input.value);
+  });
+
+  restoreLastSearch();
 </script>
