@@ -28,18 +28,21 @@
 
       div.innerHTML = `
         <img src="${movie.Poster}" />
-        <h3>${movie.Title}</h3>
       `;
 
-      // CLICK → detalle
+      // IR A DETALLE
       div.onclick = () => {
         window.location.href = `/movie/${movie.imdbID}`;
       };
 
-      // BOTÓN FAVORITO
-      const favBtn = document.createElement("button");
-      favBtn.innerText = "❤️";
+      // FAVORITO
+      const favBtn = document.createElement("div");
       favBtn.classList.add("fav");
+
+      let favs = JSON.parse(localStorage.getItem("favs")) || [];
+      const isFav = favs.some(f => f.imdbID === movie.imdbID);
+
+      favBtn.innerText = isFav ? "💖" : "❤️";
 
       favBtn.onclick = (e) => {
         e.stopPropagation();
@@ -48,19 +51,18 @@
 
         const exists = favs.find(f => f.imdbID === movie.imdbID);
 
-        if (!exists) {
-          favs.push(movie);
-          localStorage.setItem("favs", JSON.stringify(favs));
-          favBtn.innerText = "💖";
-        } else {
+        if (exists) {
           favs = favs.filter(f => f.imdbID !== movie.imdbID);
-          localStorage.setItem("favs", JSON.stringify(favs));
           favBtn.innerText = "❤️";
+        } else {
+          favs.push(movie);
+          favBtn.innerText = "💖";
         }
+
+        localStorage.setItem("favs", JSON.stringify(favs));
       };
 
       div.appendChild(favBtn);
-
       container.appendChild(div);
     });
   }
@@ -70,16 +72,4 @@
     currentPage = 1;
     fetchMovies();
   });
-
-  window.nextPage = () => {
-    currentPage++;
-    fetchMovies();
-  };
-
-  window.prevPage = () => {
-    if (currentPage > 1) {
-      currentPage--;
-      fetchMovies();
-    }
-  };
 </script>

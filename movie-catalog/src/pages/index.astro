@@ -5,20 +5,25 @@ import SearchBar from "../components/SearchBar.astro";
 
 <html>
   <body>
-    <div class="container">
-      <h1>&#127916; Movie Catalog</h1>
 
-      <button id="themeBtn">Cambiar tema</button>
+    <div class="header">
+      <div class="logo">NETFLIX</div>
 
-      <SearchBar />
-
-      <div id="movies" class="grid"></div>
-
-      <div style="text-align:center;">
-        <button onclick="prevPage()">⬅️</button>
-        <button onclick="nextPage()">➡️</button>
+      <div>
+        <button id="themeBtn">🌙</button>
+        <button onclick="showFavs()">❤️</button>
       </div>
     </div>
+
+    <div class="hero">
+      <h1>Movie Catalog</h1>
+    </div>
+
+    <div class="container">
+      <SearchBar />
+    </div>
+
+    <div id="movies" class="grid"></div>
 
     <script>
       const btn = document.getElementById("themeBtn");
@@ -26,6 +31,35 @@ import SearchBar from "../components/SearchBar.astro";
       btn.onclick = () => {
         document.body.classList.toggle("light");
       };
+
+      // MOSTRAR FAVORITOS
+      window.showFavs = () => {
+        const container = document.getElementById("movies");
+        const favs = JSON.parse(localStorage.getItem("favs")) || [];
+
+        container.innerHTML = "";
+
+        if (favs.length === 0) {
+          container.innerHTML = "<p>No hay favoritos</p>";
+          return;
+        }
+
+        favs.forEach(movie => {
+          const div = document.createElement("div");
+          div.classList.add("card");
+
+          div.innerHTML = `
+            <img src="${movie.Poster}" />
+          `;
+
+          div.onclick = () => {
+            window.location.href = `/movie/${movie.imdbID}`;
+          };
+
+          container.appendChild(div);
+        });
+      };
     </script>
+
   </body>
 </html>
