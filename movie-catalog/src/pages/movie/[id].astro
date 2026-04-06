@@ -8,27 +8,33 @@ const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&i=${id}`);
 const movie = await res.json();
 ---
 
-<html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{movie.Title} | Catálogo de películas</title>
+  </head>
   <body>
     <div class="container">
-      <h1>{movie.Title}</h1>
+      <article class="movie-detail">
+        <h1>{movie.Title}</h1>
+        <div class="movie-layout">
+          <img src={movie.Poster} alt={movie.Title} />
 
-      <img src={movie.Poster} style="width:250px; border-radius:10px;" />
-
-      <p><strong>Año:</strong> {movie.Year}</p>
-      <p><strong>Duración:</strong> {movie.Runtime}</p>
-      <p><strong>Género:</strong> {movie.Genre}</p>
-      <p><strong>Director:</strong> {movie.Director}</p>
-      <p><strong>Actores:</strong> {movie.Actors}</p>
-      <p><strong>Idioma:</strong> {movie.Language}</p>
-
-      <p><strong>Descripción:</strong></p>
-      <p>{movie.Plot}</p>
-
-      <p><strong>Premios:</strong> {movie.Awards}</p>
-      <p>⭐ IMDb: {movie.imdbRating}</p>
-
-      <button onclick="window.history.back()">Volver</button>
+          <div class="movie-meta">
+            <p><strong>Año:</strong> {movie.Year}</p>
+            <p><strong>Duración:</strong> {movie.Runtime}</p>
+            <p><strong>Género:</strong> {movie.Genre}</p>
+            <p><strong>Director:</strong> {movie.Director}</p>
+            <p><strong>Actores:</strong> {movie.Actors}</p>
+            <p><strong>Idioma:</strong> {movie.Language}</p>
+            <p><strong>Descripción:</strong> {movie.Plot}</p>
+            <p><strong>Premios:</strong> {movie.Awards}</p>
+            <p><strong>IMDb:</strong> {movie.imdbRating}</p>
+            <button id="backBtn" type="button">Volver</button>
+          </div>
+        </div>
+      </article>
     </div>
 
     <script>
@@ -36,6 +42,13 @@ const movie = await res.json();
       if (savedTheme === "light") {
         document.body.classList.add("light");
       }
+
+      document.getElementById("backBtn")?.addEventListener("click", (event) => {
+        event.currentTarget.classList.remove("run-animation");
+        void event.currentTarget.offsetWidth;
+        event.currentTarget.classList.add("run-animation");
+        setTimeout(() => window.history.back(), 120);
+      });
     </script>
   </body>
 </html>

@@ -1,81 +1,121 @@
-<input type="text" id="searchInput" placeholder="Buscar pelicula..." />
+<input type="text" id="searchInput" placeholder="Buscar película..." />
 
 <script>
   const input = document.getElementById("searchInput");
   const container = document.getElementById("movies");
+  let currentRequest = 0;
+  let searchDebounce;
+
+  function runAnimation(element) {
+    element.classList.remove("run-animation");
+    void element.offsetWidth;
+    element.classList.add("run-animation");
+  }
+
+  function renderMessage(text) {
+    container.innerHTML = `<p class="message">${text}</p>`;
+  }
+
+  function renderSkeletons() {
+    container.innerHTML = "";
+    for (let i = 0; i < 8; i++) {
+      const skel = document.createElement("div");
+      skel.classList.add("skeleton");
+      container.appendChild(skel);
+    }
+  }
+
+  function notifyFavoritesChanged() {
+    window.dispatchEvent(new Event("favorites:changed"));
+  }
 
   async function fetchMovies(query) {
-    if (query.length < 3) return;
+    const trimmedQuery = query.trim();
+    const requestId = ++currentRequest;
 
-    container.innerHTML = "";
-
-for (let i = 0; i < 8; i++) {
-  const skel = document.createElement("div");
-  skel.classList.add("skeleton");
-  container.appendChild(skel);
-}
-
-    const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&s=${query}`);
-    const data = await res.json();
-
-    container.innerHTML = "";
-
-    if (data.Response === "False") {
-      container.innerHTML = "<p>No hay resultados</p>";
+    if (trimmedQuery.length === 0) {
+      renderMessage("Escribí al menos 3 letras para buscar.");
       return;
     }
 
-    data.Search.forEach(movie => {
-      const div = document.createElement("div");
-      div.classList.add("card");
+    if (trimmedQuery.length < 3) {
+      renderMessage("Ingresá 3 o más letras para ver resultados.");
+      return;
+    }
 
-      div.innerHTML = `
-        <img src="${movie.Poster}" />
-        <h3>${movie.Title}</h3>
-      `;
+    renderSkeletons();
+    runAnimation(container);
 
-      div.onclick = () => {
-        window.location.href = `/movie/${movie.imdbID}`;
-      };
+    try {
+      const res = await fetch(
+        `https://www.omdbapi.com/?apikey=2a3fe01f&s=${encodeURIComponent(trimmedQuery)}`
+      );
+      const data = await res.json();
 
-      const favBtn = document.createElement("div");
-      favBtn.classList.add("fav");
+      if (requestId !== currentRequest) return;
+      container.innerHTML = "";
 
-      let favs = JSON.parse(localStorage.getItem("favs")) || [];
-      const isFav = favs.some(f => f.imdbID === movie.imdbID);
+      if (data.Response === "False") {
+        renderMessage("No se encontraron resultados.");
+        return;
+      }
 
-      favBtn.innerHTML = isFav ? "&#10084;" : "&#9825;";
+      data.Search.forEach((movie, index) => {
+        const div = document.createElement("div");
+        div.classList.add("card");
+        div.style.animationDelay = `${index * 35}ms`;
 
-      favBtn.onclick = (e) => {
-        e.stopPropagation();
+        div.innerHTML = `
+          <img src="${movie.Poster}" alt="${movie.Title}" />
+          <h3>${movie.Title}</h3>
+        `;
 
-        let favs = JSON.parse(localStorage.getItem("favs")) || [];
-        const exists = favs.find(f => f.imdbID === movie.imdbID);
+        div.onclick = () => {
+          window.location.href = `/movie/${movie.imdbID}`;
+        };
 
-        if (exists) {
-          favs = favs.filter(f => f.imdbID !== movie.imdbID);
-          favBtn.innerHTML = "&#9825;";
-          favBtn.classList.remove("active");
-        } else {
-          favs.push(movie);
-          favBtn.innerHTML = "&#10084;";
-          favBtn.classList.add("active");
+        const favBtn = document.createElement("div");
+        favBtn.classList.add("fav");
 
-          // quitar animación después
-          setTimeout(() => {
-            favBtn.classList.remove("active");
-          }, 300);
-        }
+        const favs = JSON.parse(localStorage.getItem("favs") || "[]");
+        const isFav = favs.some(f => f.imdbID === movie.imdbID);
+        favBtn.innerHTML = isFav ? "❤" : "♡";
+        favBtn.setAttribute("aria-label", `Agregar o quitar ${movie.Title} de favoritos`);
 
-        localStorage.setItem("favs", JSON.stringify(favs));
-      };
+        favBtn.onclick = (e) => {
+          e.stopPropagation();
+          let list = JSON.parse(localStorage.getItem("favs") || "[]");
+          const exists = list.find(f => f.imdbID === movie.imdbID);
 
-      div.appendChild(favBtn);
-      container.appendChild(div);
-    });
+          if (exists) {
+            list = list.filter(f => f.imdbID !== movie.imdbID);
+            favBtn.innerHTML = "♡";
+          } else {
+            list.push(movie);
+            favBtn.innerHTML = "❤";
+            favBtn.classList.add("active");
+            setTimeout(() => favBtn.classList.remove("active"), 300);
+          }
+
+          localStorage.setItem("favs", JSON.stringify(list));
+          notifyFavoritesChanged();
+        };
+
+        div.appendChild(favBtn);
+        container.appendChild(div);
+      });
+
+      runAnimation(input);
+    } catch {
+      if (requestId !== currentRequest) return;
+      renderMessage("Error al buscar. Intentá nuevamente.");
+    }
   }
 
   input.addEventListener("input", () => {
-    fetchMovies(input.value);
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => fetchMovies(input.value), 260);
   });
+
+  renderMessage("Escribí al menos 3 letras para buscar.");
 </script>

@@ -3,96 +3,111 @@ import "../styles/global.css";
 import SearchBar from "../components/SearchBar.astro";
 ---
 
-<html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Catálogo de películas</title>
+  </head>
   <body>
     <div class="container">
-
       <div class="header">
-        <h1>&#127916; Movie Catalog</h1>
-
-        <div>
+        <div class="title-wrap">
+          <h1>Catálogo de películas</h1>
+          <p>Buscá títulos, guardá favoritos y explorá detalles.</p>
+        </div>
+        <div class="actions">
           <span id="favCount" class="counter"></span>
-          <button id="themeBtn">&#9790;</button>
-          <button onclick="showFavs()">&#10084;</button>
+          <button id="themeBtn" type="button" aria-label="Cambiar tema">🌙</button>
+          <button id="showFavsBtn" type="button" aria-label="Mostrar favoritos">❤</button>
         </div>
       </div>
 
       <SearchBar />
 
       <div id="movies" class="grid"></div>
-
     </div>
 
     <script>
-      // 🔥 MODO GUARDADO
+      const moviesContainer = document.getElementById("movies");
+      const favCount = document.getElementById("favCount");
+      const themeBtn = document.getElementById("themeBtn");
+      const showFavsBtn = document.getElementById("showFavsBtn");
+
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme === "light") {
         document.body.classList.add("light");
       }
+      themeBtn.textContent = document.body.classList.contains("light") ? "🌞" : "🌙";
 
-      const btn = document.getElementById("themeBtn");
-
-      btn.onclick = () => {
-        document.body.classList.toggle("light");
-
-        const isLight = document.body.classList.contains("light");
-        localStorage.setItem("theme", isLight ? "light" : "dark");
-      };
-
-      // 🔥 CONTADOR FAVORITOS
-      function updateFavCount() {
-        const favs = JSON.parse(localStorage.getItem("favs")) || [];
-        document.getElementById("favCount").innerText = favs.length + " favs";
+      function runAnimation(element) {
+        element.classList.remove("run-animation");
+        void element.offsetWidth;
+        element.classList.add("run-animation");
       }
 
+      function updateFavCount() {
+        const favs = JSON.parse(localStorage.getItem("favs") || "[]");
+        favCount.textContent = `${favs.length} favoritos`;
+        runAnimation(favCount);
+      }
+
+      themeBtn.addEventListener("click", () => {
+        document.body.classList.toggle("light");
+        const isLight = document.body.classList.contains("light");
+        localStorage.setItem("theme", isLight ? "light" : "dark");
+        themeBtn.textContent = isLight ? "🌞" : "🌙";
+        runAnimation(themeBtn);
+      });
+
       updateFavCount();
+      window.addEventListener("favorites:changed", updateFavCount);
 
-      // 🔥 MOSTRAR FAVORITOS (CON BORRAR)
       window.showFavs = () => {
-        const container = document.getElementById("movies");
-        let favs = JSON.parse(localStorage.getItem("favs")) || [];
-
-        container.innerHTML = "";
+        let favs = JSON.parse(localStorage.getItem("favs") || "[]");
+        moviesContainer.innerHTML = "";
+        runAnimation(moviesContainer);
+        runAnimation(showFavsBtn);
 
         if (favs.length === 0) {
-          container.innerHTML = "<p>No hay favoritos</p>";
+          moviesContainer.innerHTML = "<p class='message'>No hay favoritos todavía.</p>";
           return;
         }
 
-        favs.forEach(movie => {
+        favs.forEach((movie, index) => {
           const div = document.createElement("div");
           div.classList.add("card");
+          div.style.animationDelay = `${index * 35}ms`;
 
           div.innerHTML = `
-            <img src="${movie.Poster}" />
+            <img src="${movie.Poster}" alt="${movie.Title}" />
             <h3>${movie.Title}</h3>
           `;
 
-          // IR A DETALLE
           div.onclick = () => {
             window.location.href = `/movie/${movie.imdbID}`;
           };
 
-          // BOTÓN QUITAR
           const removeBtn = document.createElement("div");
           removeBtn.classList.add("fav");
-          removeBtn.innerHTML = "&#10006;";
+          removeBtn.innerHTML = "✖";
+          removeBtn.setAttribute("aria-label", `Quitar ${movie.Title} de favoritos`);
 
           removeBtn.onclick = (e) => {
             e.stopPropagation();
-
             favs = favs.filter(f => f.imdbID !== movie.imdbID);
             localStorage.setItem("favs", JSON.stringify(favs));
-
             showFavs();
             updateFavCount();
+            window.dispatchEvent(new Event("favorites:changed"));
           };
 
           div.appendChild(removeBtn);
-          container.appendChild(div);
+          moviesContainer.appendChild(div);
         });
       };
+
+      showFavsBtn.addEventListener("click", () => window.showFavs());
     </script>
-    
   </body>
 </html>
