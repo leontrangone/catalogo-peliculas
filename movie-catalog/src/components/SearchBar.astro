@@ -1,0 +1,17 @@
+<input type="text" id="searchInput" placeholder="Buscar película..." />
+
+<script>
+  const input = document.getElementById("searchInput");
+
+  input.addEventListener("input", async () => {
+    const query = input.value;
+
+    if (query.length < 3) return;
+
+    const res = await fetch(`https://www.omdbapi.com/?apikey=TU_API_KEY&s=${query}`);
+    const data = await res.json();
+
+    const event = new CustomEvent("moviesFetched", { detail: data.Search });
+    window.dispatchEvent(event);
+  });
+</script>

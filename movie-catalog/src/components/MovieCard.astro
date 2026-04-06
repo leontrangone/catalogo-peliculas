@@ -1,0 +1,8 @@
+---
+const { movie } = Astro.props;
+---
+
+<div class="card">
+  <img src={movie.Poster} alt={movie.Title} />
+  <h3>{movie.Title}</h3>
+</div>
