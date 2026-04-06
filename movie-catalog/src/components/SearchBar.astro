@@ -8,7 +8,7 @@
 
     if (query.length < 3) return;
 
-    const res = await fetch(`https://www.omdbapi.com/?apikey=TU_API_KEY&s=${query}`);
+    const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&s=${query}`);
     const data = await res.json();
 
     const event = new CustomEvent("moviesFetched", { detail: data.Search });
