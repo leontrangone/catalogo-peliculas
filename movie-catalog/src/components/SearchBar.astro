@@ -7,7 +7,13 @@
   async function fetchMovies(query) {
     if (query.length < 3) return;
 
-    container.innerHTML = "<p>Cargando...</p>";
+    container.innerHTML = "";
+
+for (let i = 0; i < 8; i++) {
+  const skel = document.createElement("div");
+  skel.classList.add("skeleton");
+  container.appendChild(skel);
+}
 
     const res = await fetch(`https://www.omdbapi.com/?apikey=2a3fe01f&s=${query}`);
     const data = await res.json();
